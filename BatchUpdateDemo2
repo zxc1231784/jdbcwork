@@ -1,0 +1,49 @@
+package com.lcpan;
+
+import java.sql.*;
+
+public class BatchUpdateDemo2 {
+	public static void main(String[] args) {
+		Connection conn = null;
+		int batasize=3;
+
+		try {     
+			String connUrl = "jdbc:sqlserver://localhost:1433;databaseName=jdbc";
+			conn = DriverManager.getConnection(connUrl, "sa", "passw0rd");
+			
+			String qryStmt = "SELECT empno, salary FROM employee";
+			PreparedStatement pstmt = conn.prepareStatement(qryStmt);
+			ResultSet rs = pstmt.executeQuery();
+			
+			String updateStmt = "UPDATE employee SET salary = ? WHERE empno = ?";
+			pstmt = conn.prepareStatement(updateStmt);
+	
+			while (rs.next()) {		
+				for(int i=0;i<batasize;i++) {
+				pstmt.setDouble(1, rs.getDouble(2) + 1);
+				pstmt.setInt(2, rs.getInt(1));
+				pstmt.addBatch();
+			}
+			pstmt.executeBatch();
+			}
+			qryStmt = "SELECT ename, salary FROM employee";
+			pstmt = conn.prepareStatement(qryStmt);
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				System.out.print("name = " + rs.getString("ename") + ", ");
+				System.out.println("salary = " + rs.getDouble("salary"));
+			}
+			rs.close();
+			pstmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (conn != null)
+				try {
+					conn.close();
+				} catch(SQLException e) {
+					e.printStackTrace();
+				}
+		}
+	}// end of main()
+}// end of class BatchUpdateDemo
