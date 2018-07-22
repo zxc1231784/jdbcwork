@@ -1,35 +1,44 @@
 package com.lcpan;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class BatchUpdateDemo2 {
 	public static void main(String[] args) {
 		Connection conn = null;
-		int batasize=3;
+		int batasize = 3;
 
-		try {     
+		try {
 			String connUrl = "jdbc:sqlserver://localhost:1433;databaseName=jdbc";
 			conn = DriverManager.getConnection(connUrl, "sa", "passw0rd");
-			
-			String qryStmt = "SELECT empno, salary FROM employee";
+
+			String qryStmt = "SELECT empno, salary FROM employee2";
 			PreparedStatement pstmt = conn.prepareStatement(qryStmt);
 			ResultSet rs = pstmt.executeQuery();
-			
-			String updateStmt = "UPDATE employee SET salary = ? WHERE empno = ?";
+
+			String updateStmt = "UPDATE employee2 SET salary = ? WHERE empno = ?";
 			pstmt = conn.prepareStatement(updateStmt);
-	
-			while (rs.next()) {		
-				for(int i=0;i<batasize;i++) {
+			int x = 0;//判斷用的
+
+			while (rs.next()) {
 				pstmt.setDouble(1, rs.getDouble(2) + 1);
 				pstmt.setInt(2, rs.getInt(1));
 				pstmt.addBatch();
+				x++;//每跑一次+1
+				if (x == batasize) {   //x==batasize進入if迴圈
+					x = 0;//重置x
+					pstmt.executeBatch();//寫入資料庫
+				}
 			}
-			pstmt.executeBatch();
-			}
-			qryStmt = "SELECT ename, salary FROM employee";
+			pstmt.executeBatch();//把剩下的寫入資料庫
+
+			qryStmt = "SELECT ename, salary FROM employee2";
 			pstmt = conn.prepareStatement(qryStmt);
 			rs = pstmt.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				System.out.print("name = " + rs.getString("ename") + ", ");
 				System.out.println("salary = " + rs.getDouble("salary"));
 			}
@@ -41,7 +50,7 @@ public class BatchUpdateDemo2 {
 			if (conn != null)
 				try {
 					conn.close();
-				} catch(SQLException e) {
+				} catch (SQLException e) {
 					e.printStackTrace();
 				}
 		}
