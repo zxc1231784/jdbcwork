@@ -1,0 +1,72 @@
+# package com.lcpan;
+
+
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+
+public class jdbcFileWriter {
+	public static void main(String[] args) throws IOException {
+		Connection conn = null;
+		String s = "";
+		
+		try {
+			String connUrl = "jdbc:sqlserver://localhost:1433;databaseName=jdbc";
+			conn = DriverManager.getConnection(connUrl, "sa", "passw0rd");
+			PrintWriter pw = new PrintWriter(new FileWriter("C:\\_Java\\workspace\\JDBC\\res\\ccc.txt"));
+
+			String qryStmt = "SELECT * FROM employee";
+			PreparedStatement stmt = conn.prepareStatement(qryStmt);
+			ResultSet rs = stmt.executeQuery();
+
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int count = rsmd.getColumnCount();
+			System.out.println(count);
+			for (int i = 1; i <= count; i++) {
+				System.out.print(rsmd.getColumnLabel(i) + ", ");
+				s=s+rsmd.getColumnLabel(i) +", ";//串成字串
+			}
+			int a=s.lastIndexOf(",");//找到最後一個逗號
+			s=s.substring(0, a);//重新串成字串,java151的方法
+			pw.write(s+"\r\n");//寫入檔案並且換行
+			s="";//把字串S重置
+			System.out.print("\n");
+
+			while (rs.next()) {
+				for (int i = 1; i <= count; i++) {
+					System.out.print(rs.getString(i) + ", ");
+					s=s+rs.getString(i)+",";//串成字串
+				}
+				a=s.lastIndexOf(",");//找到最後一個逗號
+				s=s.substring(0, a);//重新串成字串,java151的方法
+				
+				pw.write(s+"\r\n");//寫入檔案並且換行
+				s="";//把字串S重置
+				System.out.print("\n");
+			}
+			pw.close();
+			rs.close();
+			stmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+		}
+	}// end of main()
+}// end of class ResultSetMetaDataDemo
