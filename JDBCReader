@@ -1,0 +1,57 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+// Insert one employee
+public class JDBCReader {
+	public static void main(String[] args) throws IOException {
+		Connection conn = null;
+		String s = null;
+		try {
+			String connUrl = "jdbc:sqlserver://localhost:1433;databaseName=jdbc";
+			conn = DriverManager.getConnection(connUrl, "sa", "passw0rd");
+			BufferedReader br = new BufferedReader(new FileReader("C:\\_Java\\workspace\\JDBC\\res\\aaaa.txt"));//讀文字檔
+
+			String insStmt = "INSERT INTO employee2 VALUES (?, ?, ?, ?, ?, ?)";
+			PreparedStatement pstmt = conn.prepareStatement(insStmt);
+			while ((s = br.readLine()) != null) {
+				String ss[] = s.split(",");//用逗號切割字串並存入陣列
+				pstmt.setInt(1, Integer.parseInt(ss[0]));//將字串轉成int java p.150 方法
+				pstmt.setString(2, ss[1]);
+				pstmt.setString(3, ss[2]);
+				pstmt.setDouble(4, Double.parseDouble(ss[3]));//將字串轉成double java p.150 方法
+				pstmt.setInt(5, Integer.parseInt(ss[4]));//將字串轉成int java p.150 方法
+				pstmt.setString(6, ss[5]);
+				pstmt.addBatch();
+			}
+			pstmt.executeBatch();
+
+			pstmt = conn.prepareStatement("SELECT * FROM employee2");
+			ResultSet rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+				System.out.print("name = " + rs.getString("ename") + ", ");
+				System.out.println("salary = " + rs.getDouble("salary"));
+			}
+			rs.close();
+			pstmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+		}
+	}
+
+}// end of main()
+// end of class InsertDemo
